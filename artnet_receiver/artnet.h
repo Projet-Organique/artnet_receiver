@@ -2,15 +2,17 @@
 #include <FastLED.h>
 
 // LED Strip
-const int numLeds = 120; // Change if your setup has more or less LED's
+const int numLeds = 180; // Change if your setup has more or less LED's
 const int numberOfChannels = numLeds * 3; // Total number of DMX channels you want to receive (1 led = 3 channels)
 #define DATA_PIN 19 //The data pin that the WS2812 strips are connected to.
+#define DATA_PIN2 23 //The data pin that the WS2812 strips are connected to.
+#define DATA_PIN3 18 //The data pin that the WS2812 strips are connected to.
 CRGB leds[numLeds];
 
 // Artnet settings
 ArtnetWifi artnet;
 const int startUniverse = 200;
-                                                                                                 
+
 bool sendFrame = 1;
 int previousDataLength = 0;
 
@@ -36,10 +38,11 @@ void onDmxFrame(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t* d
 }
 
 void arnetSetup() {
-  
-  FastLED.addLeds<WS2812, DATA_PIN, GRB>(leds, numLeds);
 
-  // onDmxFrame will execute every time a packet is received by the ESP32
+  FastLED.addLeds<WS2812, DATA_PIN, GRB>(leds, numLeds);
+  FastLED.addLeds<WS2812, DATA_PIN2, GRB>(leds, numLeds);
+  FastLED.addLeds<WS2812, DATA_PIN3, GRB>(leds, numLeds);
+  onDmxFrame will execute every time a packet is received by the ESP32
   artnet.setArtDmxCallback(onDmxFrame);
 
   artnet.begin();
