@@ -1,0 +1,51 @@
+#include <ArtnetWifi.h>
+#include <FastLED.h>
+
+// LED Strip
+const int numLeds = 120; // Change if your setup has more or less LED's
+const int numberOfChannels = numLeds * 3; // Total number of DMX channels you want to receive (1 led = 3 channels)
+#define DATA_PIN 19 //The data pin that the WS2812 strips are connected to.
+CRGB leds[numLeds];
+
+// Artnet settings
+ArtnetWifi artnet;
+const int startUniverse = 200;
+                                                                                                 
+bool sendFrame = 1;
+int previousDataLength = 0;
+
+void onDmxFrame(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t* data)
+{
+  sendFrame = 1;
+  // set brightness of the whole strip
+  if (universe == 15)
+  {
+    FastLED.setBrightness(data[0]);
+  }
+  // read universe and put into the right part of the display buffer
+  for (int i = 0; i < length / 3; i++)
+  {
+    int led = i + (universe - startUniverse) * (previousDataLength / 3);
+    if (led < numLeds)
+    {
+      leds[led] = CRGB(data[i * 3], data[i * 3 + 1], data[i * 3 + 2]);
+    }
+  }
+  previousDataLength = length;
+  FastLED.show();
+}
+
+void arnetSetup() {
+  
+  FastLED.addLeds<WS2812, DATA_PIN, GRB>(leds, numLeds);
+
+  // onDmxFrame will execute every time a packet is received by the ESP32
+  artnet.setArtDmxCallback(onDmxFrame);
+
+  artnet.begin();
+}
+
+void artnetParse() {
+  artnet.read();
+  FastLED.show();
+}
